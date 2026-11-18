@@ -13,8 +13,26 @@ if(PHP_SAPI!="cli"){
     http_response_code(404);
     exit;
 }
-//Path to the webapp's DB config: change it if you move the folders
-require __DIR__."/../dwight/api/incls/incls.dbh.php";
+//Where the webapp's DB config is. Tried in order:
+// - setup/ next to dwight/ (as in the repository)
+// - setup/ next to htdocs/ (XAMPP: C:\xampp\setup and C:\xampp\htdocs\dwight)
+//If you put the folders somewhere else, add the path here.
+$dbConfigPaths=[
+    __DIR__."/../dwight/api/incls/incls.dbh.php",
+    __DIR__."/../htdocs/dwight/api/incls/incls.dbh.php"
+];
+$dbConfigFound=FALSE;
+foreach($dbConfigPaths as $path){
+    if(!$dbConfigFound && file_exists($path)){
+        require $path;
+        $dbConfigFound=TRUE;
+    }
+}
+if(!$dbConfigFound){
+    echo "Can't find dwight/api/incls/incls.dbh.php. Looked in:\n  ".implode("\n  ",$dbConfigPaths)."\n";
+    echo "Add the right path at the top of create-admin.php.\n";
+    exit(1);
+}
 
 $username=NULL;
 $options=[];

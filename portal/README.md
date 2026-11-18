@@ -11,18 +11,22 @@ dwight/                  → goes in htdocs (e.g. C:\xampp\htdocs\dwight\)
 ├── api/index.php        switch on `action`: session, login, verify, logout, whoami
 ├── api/incls/incls.dbh.php   DB settings (XAMPP defaults: root, no password)
 ├── css/main.css  js/main.js  img/
-setup/                   → keep OUTSIDE htdocs
+setup/                   → keep OUTSIDE htdocs (e.g. C:\xampp\setup\)
+├── dwight-schema.sql    the database structure
 ├── auth-tables.sql      the `dwight-login-attempts` table
 └── create-admin.php     creates admins from the command line
 ```
 
 ## Setup (XAMPP)
 
-1. In phpMyAdmin, select `dwight` and run `setup/auth-tables.sql`.
-2. Copy `dwight/` into `htdocs`, and `setup/` next to it (not inside).
-   If the two folders aren't side by side, fix the `require` path at the top
-   of `create-admin.php`.
-3. Create your admin and the bot account:
+1. In phpMyAdmin, create the `dwight` database, select it, and run
+   `setup/dwight-schema.sql` (skip it if the tables already exist), then
+   `setup/auth-tables.sql`.
+2. Copy `dwight/` into `htdocs` (`C:\xampp\htdocs\dwight\`) and `setup/` into
+   the XAMPP folder, next to `htdocs` (`C:\xampp\setup\`), so it isn't served.
+   `create-admin.php` finds the DB config in either this layout or the
+   repository's; for another layout, add the path at its top.
+3. From `C:\xampp\setup\`, create your admin and the bot account:
    ```
    php create-admin.php yourname --telegram=123456789
    php create-admin.php Dwight --bot

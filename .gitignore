@@ -1,0 +1,9 @@
+# Editors
+.vscode/
+*.code-workspace
+
+# Local databases
+*.db
+
+# Secrets
+secrets.json

@@ -1,0 +1,2 @@
+# Apache can hide the Authorization header from PHP: pass it on for API tokens
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1

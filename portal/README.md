@@ -17,8 +17,7 @@ dwight/                  → goes in htdocs (e.g. C:\xampp\htdocs\dwight\)
 setup/                   → keep OUTSIDE htdocs (e.g. C:\xampp\setup\)
 ├── dwight-schema.sql    the database structure
 ├── auth-tables.sql      the `dwight-login-attempts` table
-├── migrations/          changes for databases created with an older version
-└── create-admin.php     creates admins from the command line
+└── migrations/          changes for databases created with an older version
 ```
 
 ## Setup (XAMPP)
@@ -27,15 +26,19 @@ setup/                   → keep OUTSIDE htdocs (e.g. C:\xampp\setup\)
    `setup/dwight-schema.sql` (skip it if the tables already exist), then
    `setup/auth-tables.sql`. If you already had `dwight-login-attempts`, run the
    files in `setup/migrations/` instead of `auth-tables.sql`.
-2. Copy `dwight/` into `htdocs` (`C:\xampp\htdocs\dwight\`) and `setup/` into
-   the XAMPP folder, next to `htdocs` (`C:\xampp\setup\`), so it isn't served.
-   `create-admin.php` finds the DB config in either this layout or the
-   repository's; for another layout, add the path at its top.
-3. From `C:\xampp\setup\`, create your admin and the bot account:
+2. Copy `dwight/` into `htdocs` (`C:\xampp\htdocs\dwight\`). Keep `setup/`
+   out of `htdocs`, so the SQL files aren't served.
+3. There's no user creation yet. To test, make a hash from the command line
+   (`C:\xampp\php\php.exe` if `php` isn't on your PATH):
    ```
-   php create-admin.php yourname --telegram=123456789
-   php create-admin.php Dwight --bot
+   php -r "echo password_hash('your-password', PASSWORD_DEFAULT);"
    ```
+   and insert the admin in phpMyAdmin, pasting the hash:
+   ```sql
+   INSERT INTO `dwight-admins` (`UUID`,`Username`,`Hash`,`Privileges`,`IsActive`)
+   VALUES (UUID(), 'yourname', '$2y$10$...', 'A', 1);
+   ```
+   An account with `Hash` = `''` (like the Dwight bot account) can never log in.
 4. Open `http://localhost/dwight/login.html`.
 
 In production: put the webapp's own DB user in `incls.dbh.php`, and use HTTPS

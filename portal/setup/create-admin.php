@@ -64,7 +64,7 @@ if(isset($options['reset-password'])){
         $statement = $conn->prepare("UPDATE `dwight-admins` SET `Hash`= ? WHERE `ID`= ?;");
         $statement->bind_param("si",$hash,$Row['ID']);
         $statement->execute();
-        echo "Password changed. To log out their open sessions now, bump \$SESSION_VERSION in api/index.php.\n";
+        echo "Password changed. To log out their open sessions now, bump \$SESSION_VERSION in api/incls/auth.php.\n";
     }else{
         echo "No admin called '".$username."'.\n";
         exit(1);

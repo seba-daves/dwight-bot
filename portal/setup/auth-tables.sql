@@ -10,5 +10,6 @@ CREATE TABLE `dwight-login-attempts` (
   `AttemptedAt` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`ID`),
   KEY `Username` (`Username`, `AttemptedAt`),
-  KEY `IP` (`IP`, `AttemptedAt`)
+  KEY `IP` (`IP`, `AttemptedAt`),
+  KEY `AttemptedAt` (`AttemptedAt`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

@@ -10,6 +10,26 @@
     /*MYSql Password      */ $dbPassword ="";
     /*MYSql Database Name */ $dbName = "dwight";
 
+    /*Connection Section
+    -------------------------
+    HTTPS mode TRUE:  only HTTPS, plain HTTP requests are refused.
+    HTTPS mode FALSE: plain HTTP allowed, e.g. on XAMPP, or on a LAN/VPN that is
+                      already private. Passwords and session cookies then travel
+                      unencrypted on that network.
+    */
+    /*HTTPS mode          */ $HTTPS_MODE = TRUE;
+
+    /*Debug Section
+    -------------------------
+    TRUE only while developing: server errors show the real PHP message
+    instead of just "Server Error". Never leave it on where others can reach it.
+    */
+    /*Debug mode          */ $DEBUG_MODE = FALSE;
+
+    //Set before connecting, so the error handler can read them even if the DB is down
+    $GLOBALS['HTTPS_MODE'] = ($HTTPS_MODE !== FALSE);
+    $GLOBALS['DEBUG_MODE'] = ($DEBUG_MODE === TRUE);
+
     //The first require opens the connection, the next ones reuse it
     //(before, every function opened a new one)
     if(!isset($GLOBALS['dwight_conn'])){

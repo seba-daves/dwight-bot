@@ -12,7 +12,7 @@ dwight/                  → goes in htdocs (e.g. C:\xampp\htdocs\dwight\)
 ├── api/incls/rateandsecurity.php   checked before every action: POST only,
 │                                   CSRF, login rate limits
 ├── api/incls/auth.php   sessions and login: Login(), CheckAuth(), Logout()…
-├── api/incls/incls.dbh.php   DB settings (XAMPP defaults: root, no password)
+├── api/incls/incls.dbh.php   settings: DB (XAMPP defaults), HTTPS mode, debug mode
 ├── css/main.css  js/main.js  img/
 setup/                   → keep OUTSIDE htdocs (e.g. C:\xampp\setup\)
 ├── dwight-schema.sql    the database structure
@@ -28,6 +28,10 @@ setup/                   → keep OUTSIDE htdocs (e.g. C:\xampp\setup\)
    files in `setup/migrations/` instead of `auth-tables.sql`.
 2. Copy `dwight/` into `htdocs` (`C:\xampp\htdocs\dwight\`). Keep `setup/`
    out of `htdocs`, so the SQL files aren't served.
+   XAMPP serves plain HTTP, so in `api/incls/incls.dbh.php` set
+   `$HTTPS_MODE = FALSE;` (otherwise every request gets "HTTPS Required").
+   While developing, `$DEBUG_MODE = TRUE;` shows the real PHP error instead of
+   just "Server Error".
 3. There's no user creation yet. To test, make a hash from the command line
    (`C:\xampp\php\php.exe` if `php` isn't on your PATH):
    ```
@@ -41,8 +45,10 @@ setup/                   → keep OUTSIDE htdocs (e.g. C:\xampp\setup\)
    An account with `Hash` = `''` (like the Dwight bot account) can never log in.
 4. Open `http://localhost/dwight/login.html`.
 
-In production: put the webapp's own DB user in `incls.dbh.php`, and use HTTPS
-(the session cookie is only marked `secure` on HTTPS).
+In production: put the webapp's own DB user in `incls.dbh.php` and keep
+`$DEBUG_MODE = FALSE;`. Leave `$HTTPS_MODE = TRUE;` unless the portal is only
+reachable on a private LAN or VPN and you choose plain HTTP there: passwords
+and session cookies then travel unencrypted on that network.
 
 ## Security notes
 
@@ -50,7 +56,13 @@ In production: put the webapp's own DB user in `incls.dbh.php`, and use HTTPS
   with `json_encode`.
 - `incls.dbh.php` opens the database connection once per request and reuses it.
 - POST only.
-- Session cookie: `httponly`, `SameSite=Strict`, `secure` on HTTPS.
+- HTTPS mode (default): plain HTTP is refused, the session cookie is always
+  `secure`, and an HSTS header tells browsers to stay on HTTPS. With
+  `$HTTPS_MODE = FALSE` HTTP works, and no HSTS is sent (it would lock
+  browsers out of an HTTP-only setup).
+- Session cookie: `httponly`, `SameSite=Strict`.
+- Server errors only say "Server Error" (details go to the PHP error log),
+  unless `$DEBUG_MODE` is on.
 - CSRF token: checked by the router for every action, attached by `CallApi()`.
 - Failed logins are limited (5 per username, 20 per IP in 15 minutes), stored
   in the database. The checks use indexes, and old attempts are cleaned up on

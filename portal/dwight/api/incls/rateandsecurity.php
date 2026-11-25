@@ -18,15 +18,33 @@ $NO_CSRF_ACTIONS=["session","verify"];
 //Actions that only make sense in a browser: not available with an API token
 $SESSION_ONLY_ACTIONS=["session","login","verify","logout"];
 
-//Never print PHP errors into the JSON: log them and answer "Server Error"
+//Never print PHP errors into the JSON: log them and answer "Server Error".
+//In debug mode ($DEBUG_MODE) the answer also says what went wrong, to save a trip to the log.
 ini_set("display_errors","0");
 set_exception_handler(function($e){
     error_log("[dwight] ".$e);
+    if(!empty($GLOBALS['DEBUG_MODE'])){
+        Error(99,get_class($e).": ".$e->getMessage()." (".basename($e->getFile()).":".$e->getLine().")");
+    }
     Error(99);
 });
 
+//Loads the settings ($HTTPS_MODE, $DEBUG_MODE) and opens the DB connection for this request
+require "./incls/incls.dbh.php";
+
 function CheckRequest(){
     //Returns the action to run, or ends the request with an Error.
+
+    //HTTPS mode ($HTTPS_MODE in incls.dbh.php): plain HTTP is refused, because
+    //the password and the session cookie would travel unencrypted
+    if($GLOBALS['HTTPS_MODE']){
+        if(!IsHttps()){
+            Error(7);
+        }
+        //Tells the browser to use HTTPS for this site from now on, even if someone types http://
+        //(only in HTTPS mode: on an HTTP-only setup it would lock the browser out)
+        header("Strict-Transport-Security: max-age=31536000");
+    }
 
     //POST only: actions can't be triggered by opening a link
     if($_SERVER['REQUEST_METHOD']!="POST"){
@@ -61,6 +79,8 @@ function CheckRequest(){
     return $action;
 }
 function IsHttps(){
+    //If you put the portal behind a reverse proxy that handles HTTPS,
+    //PHP sees plain HTTP: check the proxy's header here (only if you trust it)
     return (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']!="" && $_SERVER['HTTPS']!="off") || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT']==443);
 }
 function GetIP(){

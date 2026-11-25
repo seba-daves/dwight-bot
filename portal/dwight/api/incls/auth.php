@@ -58,7 +58,7 @@ function StartSession(){
         session_set_cookie_params([
             "lifetime"=>0,
             "path"=>"/",
-            "secure"=>IsHttps(),    //HTTPS only (off on http://localhost)
+            "secure"=>$GLOBALS['HTTPS_MODE'] ? TRUE : IsHttps(),    //sent only over HTTPS (in HTTP mode: only if this request is HTTPS)
             "httponly"=>true,       //JavaScript can't read it
             "samesite"=>"Strict"    //not sent by requests coming from other sites
         ]);

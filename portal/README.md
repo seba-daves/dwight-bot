@@ -18,6 +18,7 @@ setup/                   → keep OUTSIDE htdocs (e.g. C:\xampp\setup\)
 ├── dwight-schema.sql    the database structure
 ├── auth-tables.sql      the `dwight-login-attempts` table
 └── migrations/          changes for databases created with an older version
+webservers.md            production settings for Apache, nginx, Caddy, IIS
 ```
 
 ## Setup (XAMPP)
@@ -66,7 +67,10 @@ page replace an HTTPS-only cookie with the same name. Everyone simply logs in
 again after a switch.
 
 **Redirecting HTTP to HTTPS and HSTS are the web server's job**, configured
-where HTTPS is handled (Apache, or the proxy in front of it). For example:
+where HTTPS is handled (Apache, or the proxy in front of it).
+**[webservers.md](webservers.md)** has complete, tested settings for Apache,
+nginx and Caddy (and IIS), as a single server or behind a proxy, including the
+client-IP setting a proxy needs. In short:
 
 Apache, in the HTTPS `<VirtualHost>` (needs `mod_headers` and `mod_rewrite`):
 ```apache

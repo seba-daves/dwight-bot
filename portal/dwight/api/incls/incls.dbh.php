@@ -13,8 +13,7 @@
     -------------------------
     HTTPS mode TRUE:  only HTTPS, plain HTTP requests are refused.
     HTTPS mode FALSE: plain HTTP allowed, e.g. on XAMPP, or on a LAN/VPN that is
-                      already private. Passwords and session cookies then travel
-                      unencrypted on that network.
+                      already private.
     */
     /*HTTPS mode          */ $HTTPS_MODE = FALSE;
 
@@ -22,11 +21,11 @@
     -------------------------
     TRUE only while developing:
     - server errors show the real PHP message instead of just "Server Error"
-    - the CSRF check is off, so you can test the API with curl/Postman without a token
+    - the CSRF check is off
     Never leave it on where others can reach it: any site they visit could then
     send requests as a logged-in admin (only SameSite=Strict would still stop it).
     */
-    /*Debug mode          */ $DEBUG_MODE = FALSE;
+    /*Debug mode          */ $DEBUG_MODE = TRUE;
 
     //Set before connecting, so the error handler can read them even if the DB is down
     $GLOBALS['HTTPS_MODE'] = ($HTTPS_MODE !== FALSE);

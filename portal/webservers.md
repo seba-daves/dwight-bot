@@ -40,8 +40,8 @@ X-Frame-Options: DENY               # the login page can't be shown inside anoth
 ## Apache
 
 Modules: `ssl`, `headers`, `setenvif`, and `remoteip` when behind a proxy
-(`a2enmod ssl headers setenvif remoteip` on Debian/Ubuntu; on XAMPP, uncomment
-them in `httpd.conf`).
+(`a2enmod ssl headers setenvif remoteip` on Debian/Ubuntu; elsewhere, uncomment
+their `LoadModule` lines in `httpd.conf`).
 
 ### Serving PHP directly
 

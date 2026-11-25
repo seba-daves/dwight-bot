@@ -83,7 +83,10 @@ function CheckRequest(){
     }else{
         $GLOBALS['AUTH_TYPE']="session";
         StartSession();
-        if(!in_array($action,$GLOBALS['READ_ONLY_ACTIONS']) && !CheckCsrf()){
+        //Debug mode ($DEBUG_MODE) turns the check off, for testing without a token
+        if($GLOBALS['DEBUG_MODE']){
+            header("X-Dwight-Debug: CSRF check disabled");
+        }else if(!in_array($action,$GLOBALS['READ_ONLY_ACTIONS']) && !CheckCsrf()){
             Error(5);
         }
     }

@@ -20,8 +20,11 @@
 
     /*Debug Section
     -------------------------
-    TRUE only while developing: server errors show the real PHP message
-    instead of just "Server Error". Never leave it on where others can reach it.
+    TRUE only while developing:
+    - server errors show the real PHP message instead of just "Server Error"
+    - the CSRF check is off, so you can test the API with curl/Postman without a token
+    Never leave it on where others can reach it: any site they visit could then
+    send requests as a logged-in admin (only SameSite=Strict would still stop it).
     */
     /*Debug mode          */ $DEBUG_MODE = FALSE;
 

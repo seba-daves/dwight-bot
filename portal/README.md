@@ -31,7 +31,8 @@ setup/                   → keep OUTSIDE htdocs (e.g. C:\xampp\setup\)
    XAMPP serves plain HTTP, so in `api/incls/incls.dbh.php` set
    `$HTTPS_MODE = FALSE;` (otherwise every request gets "HTTPS Required").
    While developing, `$DEBUG_MODE = TRUE;` shows the real PHP error instead of
-   just "Server Error".
+   just "Server Error", and turns the CSRF check off so you can call the API
+   with curl or Postman without a token.
 3. There's no user creation yet. To test, make a hash from the command line
    (`C:\xampp\php\php.exe` if `php` isn't on your PATH):
    ```
@@ -64,7 +65,9 @@ and session cookies then travel unencrypted on that network.
   browsers out of an HTTP-only setup).
 - Session cookie: `httponly`, `SameSite=Strict`.
 - Server errors only say "Server Error" (details go to the PHP error log),
-  unless `$DEBUG_MODE` is on.
+  unless `$DEBUG_MODE` is on. Debug mode also turns the CSRF check off (responses to
+  browsers then carry an `X-Dwight-Debug` header as a reminder): never leave it
+  on where others can reach the portal.
 - CSRF token: checked by the router for every action, attached by `CallApi()`.
 - Failed logins are limited (5 per username, 20 per IP in 15 minutes), stored
   in the database. The checks use indexes, and old attempts are cleaned up on

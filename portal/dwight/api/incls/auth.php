@@ -54,11 +54,17 @@ function Login($username,$password){
 function StartSession(){
     if (session_status() === PHP_SESSION_NONE) {
         ini_set("session.use_strict_mode","1");
-        session_name("DWIGHTSESSID");
+        //$HTTPS_MODE (incls.dbh.php) says whether users are on HTTPS. PHP can't
+        //tell by itself: behind a proxy it may see plain HTTP.
+        //A different cookie name per mode: browsers don't let a plain-HTTP page
+        //overwrite an HTTPS-only cookie with the same name, so after switching
+        //HTTPS -> HTTP the login would silently fail until the browser is closed.
+        //"__Secure-" also makes the browser refuse the cookie without HTTPS.
+        session_name($GLOBALS['HTTPS_MODE'] ? "__Secure-DWIGHTSESSID" : "DWIGHTSESSID");
         session_set_cookie_params([
             "lifetime"=>0,
             "path"=>"/",
-            "secure"=>$GLOBALS['HTTPS_MODE'] ? TRUE : IsHttps(),    //sent only over HTTPS (in HTTP mode: only if this request is HTTPS)
+            "secure"=>$GLOBALS['HTTPS_MODE'],    //HTTPS mode: sent only over HTTPS
             "httponly"=>true,       //JavaScript can't read it
             "samesite"=>"Strict"    //not sent by requests coming from other sites
         ]);

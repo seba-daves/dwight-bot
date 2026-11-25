@@ -37,17 +37,6 @@ require "./incls/incls.dbh.php";
 function CheckRequest(){
     //Returns the action to run, or ends the request with an Error.
 
-    //HTTPS mode ($HTTPS_MODE in incls.dbh.php): plain HTTP is refused, because
-    //the password and the session cookie would travel unencrypted
-    if($GLOBALS['HTTPS_MODE']){
-        if(!IsHttps()){
-            Error(7);
-        }
-        //Tells the browser to use HTTPS for this site from now on, even if someone types http://
-        //(only in HTTPS mode: on an HTTP-only setup it would lock the browser out)
-        header("Strict-Transport-Security: max-age=31536000");
-    }
-
     //GET only for read-only actions: anything that changes data needs POST,
     //otherwise a link, an image or a browser prefetch could trigger it
     $method=$_SERVER['REQUEST_METHOD'];
@@ -91,11 +80,6 @@ function CheckRequest(){
         }
     }
     return $action;
-}
-function IsHttps(){
-    //If you put the portal behind a reverse proxy that handles HTTPS,
-    //PHP sees plain HTTP: check the proxy's header here (only if you trust it)
-    return (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']!="" && $_SERVER['HTTPS']!="off") || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT']==443);
 }
 function GetIP(){
     //Only REMOTE_ADDR: X-Forwarded-For can be set by anyone

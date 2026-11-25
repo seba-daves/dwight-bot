@@ -11,9 +11,10 @@
 
     /*Connection Section
     -------------------------
-    HTTPS mode TRUE:  only HTTPS, plain HTTP requests are refused.
-    HTTPS mode FALSE: plain HTTP allowed, e.g. on XAMPP, or on a LAN/VPN that is
-                      already private.
+    HTTPS mode: how users reach the portal (behind a proxy, PHP may see HTTP anyway).
+    TRUE:  users are on HTTPS, the session cookie is only sent over HTTPS.
+    FALSE: users are on plain HTTP, e.g. XAMPP or a private LAN/VPN.
+    Redirects to HTTPS and HSTS are set in the web server (see README).
     */
     /*HTTPS mode          */ $HTTPS_MODE = FALSE;
 

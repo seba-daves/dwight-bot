@@ -68,8 +68,6 @@ function GetSession(){
         if(json.responseData.loggedIn){
             parent.location='./index.html';
         }
-    } else if (json.responseType === "Error" && json.responseCode === "7") {
-        Toast("error","This Site Needs HTTPS");
     }
     })
     .catch(error => {
@@ -144,9 +142,6 @@ function Login() {
                         break;
                     case "6":
                         Toast("error","Too Many Attempts, Wait a Few Minutes");
-                        break;
-                    case "7":
-                        Toast("error","This Site Needs HTTPS");
                         break;
                     default:
                         Toast("error","Login Failed, Try Again");

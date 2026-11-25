@@ -101,10 +101,6 @@ function Error($error_id, $error_comment=""){
             $httpCode=429;
             $message="Too Many Attempts";
         break;
-        case 7:
-            $httpCode=403;
-            $message="HTTPS Required";
-        break;
         case 99:
             $httpCode=500;
             $message="Server Error";

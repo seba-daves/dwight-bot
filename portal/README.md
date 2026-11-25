@@ -29,7 +29,8 @@ setup/                   → keep OUTSIDE htdocs (e.g. C:\xampp\setup\)
 2. Copy `dwight/` into `htdocs` (`C:\xampp\htdocs\dwight\`). Keep `setup/`
    out of `htdocs`, so the SQL files aren't served.
    XAMPP serves plain HTTP, so in `api/incls/incls.dbh.php` set
-   `$HTTPS_MODE = FALSE;` (otherwise every request gets "HTTPS Required").
+   `$HTTPS_MODE = FALSE;` (otherwise the browser won't send the session
+   cookie, and you'll be logged out right after logging in).
    While developing, `$DEBUG_MODE = TRUE;` shows the real PHP error instead of
    just "Server Error", and turns the CSRF check off so you can call the API
    with curl or Postman without a token.
@@ -46,10 +47,55 @@ setup/                   → keep OUTSIDE htdocs (e.g. C:\xampp\setup\)
    An account with `Hash` = `''` (like the Dwight bot account) can never log in.
 4. Open `http://localhost/dwight/login.html`.
 
-In production: put the webapp's own DB user in `incls.dbh.php` and keep
-`$DEBUG_MODE = FALSE;`. Leave `$HTTPS_MODE = TRUE;` unless the portal is only
-reachable on a private LAN or VPN and you choose plain HTTP there: passwords
-and session cookies then travel unencrypted on that network.
+In production: put the webapp's own DB user in `incls.dbh.php`, keep
+`$DEBUG_MODE = FALSE;`, and set `$HTTPS_MODE = TRUE;` if users reach the
+portal over HTTPS (see below).
+
+## HTTPS
+
+PHP only decides one thing: `$HTTPS_MODE` says whether **users** are on HTTPS,
+directly or through a proxy. PHP may see plain HTTP behind a proxy, so it can't
+tell by itself.
+
+- `TRUE`: the session cookie is `__Secure-DWIGHTSESSID`, sent only over HTTPS.
+- `FALSE`: the cookie is `DWIGHTSESSID`, for XAMPP or a private LAN/VPN on
+  plain HTTP (passwords and cookies then travel unencrypted on that network).
+
+The cookie name changes with the mode on purpose: browsers don't let a plain-HTTP
+page replace an HTTPS-only cookie with the same name. Everyone simply logs in
+again after a switch.
+
+**Redirecting HTTP to HTTPS and HSTS are the web server's job**, configured
+where HTTPS is handled (Apache, or the proxy in front of it). For example:
+
+Apache, in the HTTPS `<VirtualHost>` (needs `mod_headers` and `mod_rewrite`):
+```apache
+Header always set Strict-Transport-Security "max-age=86400"
+```
+and in the HTTP `<VirtualHost>`:
+```apache
+RewriteEngine On
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+```
+
+nginx:
+```nginx
+server { listen 80;  return 301 https://$host$request_uri; }
+server { listen 443 ssl;  add_header Strict-Transport-Security "max-age=86400" always;  ... }
+```
+
+Keep HSTS short (`max-age=86400`, 1 day) while the setup may still change, and
+raise it (e.g. `31536000`, 1 year) once HTTPS is there to stay. Browsers that saw
+it keep forcing HTTPS until it expires.
+
+**Switching from HTTPS to HTTP** (new test environment, moving to a VPN/LAN):
+1. While HTTPS still works, send `Strict-Transport-Security: max-age=0`
+   instead and remove the redirect. Browsers that visit get the rule erased.
+   They only accept the header over HTTPS, so leave HTTPS up for at least as
+   long as the old `max-age`, or until everyone has visited once.
+2. Then set `$HTTPS_MODE = FALSE;` and turn HTTPS off.
+3. A browser still stuck on HTTPS: clear the site in `chrome://net-internals/#hsts`
+   (Chrome/Edge), or wait for the rule to expire.
 
 ## Security notes
 
@@ -59,10 +105,7 @@ and session cookies then travel unencrypted on that network.
 - GET only for read-only actions (`$READ_ONLY_ACTIONS`: `session`, `verify`,
   `whoami`); everything else is POST only. API answers are never cached
   (`Cache-Control: no-store`).
-- HTTPS mode (default): plain HTTP is refused, the session cookie is always
-  `secure`, and an HSTS header tells browsers to stay on HTTPS. With
-  `$HTTPS_MODE = FALSE` HTTP works, and no HSTS is sent (it would lock
-  browsers out of an HTTP-only setup).
+- Session cookie: HTTPS-only in HTTPS mode (see "HTTPS" above).
 - Session cookie: `httponly`, `SameSite=Strict`.
 - Server errors only say "Server Error" (details go to the PHP error log),
   unless `$DEBUG_MODE` is on. Debug mode also turns the CSRF check off (responses to

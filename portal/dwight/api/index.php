@@ -1,5 +1,5 @@
 <?php
-require "./incls/rateandsecurity.php";   //POST only, CSRF, rate limits: checked before every action
+require "./incls/rateandsecurity.php";   //methods, CSRF, rate limits: checked before every action
 require "./incls/auth.php";              //sessions and login
 
 $action=CheckRequest();
@@ -63,6 +63,7 @@ switch ($action){
 function SendJSON($struct,$code=0){
     http_response_code(200);
     header("Content-Type: application/json");
+    header("Cache-Control: no-store");   //never cache API answers (GET ones could be)
     $json=[];
     $json["responseType"]="Data";
     $json["responseCode"]=(string)$code;
@@ -118,6 +119,7 @@ function Error($error_id, $error_comment=""){
     }
     http_response_code($httpCode);
     header("Content-Type: application/json");
+    header("Cache-Control: no-store");   //never cache API answers (GET ones could be)
     $json=[];
     $json["responseType"]="Error";
     $json["responseCode"]=(string)$error_id;
@@ -146,6 +148,7 @@ function Notice($notice_id, $notice_comment="", $result=[]){
     }
     http_response_code(200);
     header("Content-Type: application/json");
+    header("Cache-Control: no-store");   //never cache API answers (GET ones could be)
     $json=[];
     $json["responseType"]="Notice";
     $json["responseCode"]=(string)$notice_id;

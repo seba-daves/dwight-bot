@@ -1,7 +1,7 @@
 <?php
 //Security that the app logic takes for granted: every request goes through
 //CheckRequest() before the switch in api/index.php.
-// - POST only
+// - GET only for read-only actions, POST for everything else
 // - who is calling: a browser (session cookie) or a program (API token)
 // - CSRF for browser requests, checked for every action automatically
 // - brute-force limit on logins
@@ -12,9 +12,11 @@ $LOGIN_MAX_FAILS_USER=5;      //Failed logins per username in the window
 $LOGIN_MAX_FAILS_IP=20;       //Failed logins per IP in the window
 $LOGIN_CLEANUP_CHANCE=100;    //Old attempts are deleted on 1 failed login in this many
 
-//Actions a browser session can call without the CSRF token: only ones that change nothing.
-//Every other action is checked automatically, so a new action is protected without doing anything.
-$NO_CSRF_ACTIONS=["session","verify"];
+//Read-only actions: they change nothing, so they can be called with GET as well as POST,
+//and without the CSRF token. Every other action is POST only and CSRF-checked
+//automatically, so a new action is protected without doing anything.
+//Add an action here only if it never changes data.
+$READ_ONLY_ACTIONS=["session","verify","whoami"];
 //Actions that only make sense in a browser: not available with an API token
 $SESSION_ONLY_ACTIONS=["session","login","verify","logout"];
 
@@ -46,20 +48,29 @@ function CheckRequest(){
         header("Strict-Transport-Security: max-age=31536000");
     }
 
-    //POST only: actions can't be triggered by opening a link
-    if($_SERVER['REQUEST_METHOD']!="POST"){
+    //GET only for read-only actions: anything that changes data needs POST,
+    //otherwise a link, an image or a browser prefetch could trigger it
+    $method=$_SERVER['REQUEST_METHOD'];
+    if($method=="GET"){
+        $params=$_GET;
+    }else if($method=="POST"){
+        $params=$_POST;
+    }else{
         Error(4);
     }
-    if(!isset($_POST['action']) || !is_string($_POST['action']) || $_POST['action']==""){
+    if(!isset($params['action']) || !is_string($params['action']) || $params['action']==""){
         Error(0);
     }
-    $action=$_POST['action'];
+    $action=$params['action'];
+    if($method=="GET" && !in_array($action,$GLOBALS['READ_ONLY_ACTIONS'])){
+        Error(4,"Use POST for this action");
+    }
 
     //Who is calling?
     // - "token":   a program (the C# bot) sending "Authorization: Bearer <token>".
     //              No cookies are involved, so CSRF can't happen and isn't checked.
     // - "session": a browser with the session cookie: CSRF is checked
-    //              for every action except $NO_CSRF_ACTIONS.
+    //              for every action except $READ_ONLY_ACTIONS.
     $bearer=GetBearerToken();
     if($bearer!=""){
         $GLOBALS['AUTH_TYPE']="token";
@@ -72,7 +83,7 @@ function CheckRequest(){
     }else{
         $GLOBALS['AUTH_TYPE']="session";
         StartSession();
-        if(!in_array($action,$GLOBALS['NO_CSRF_ACTIONS']) && !CheckCsrf()){
+        if(!in_array($action,$GLOBALS['READ_ONLY_ACTIONS']) && !CheckCsrf()){
             Error(5);
         }
     }

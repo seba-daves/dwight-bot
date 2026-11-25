@@ -9,7 +9,7 @@ dwight/                  → goes in htdocs (e.g. C:\xampp\htdocs\dwight\)
 ├── index.html           protected page (placeholder for the portal)
 ├── favicon.ico
 ├── api/index.php        the actions (switch on `action`) and the JSON responses
-├── api/incls/rateandsecurity.php   checked before every action: POST only,
+├── api/incls/rateandsecurity.php   checked before every action: methods,
 │                                   CSRF, login rate limits
 ├── api/incls/auth.php   sessions and login: Login(), CheckAuth(), Logout()…
 ├── api/incls/incls.dbh.php   settings: DB (XAMPP defaults), HTTPS mode, debug mode
@@ -55,7 +55,9 @@ and session cookies then travel unencrypted on that network.
 - `Error()`, `Notice()` and `SendJSON()` end with `exit` and build the JSON
   with `json_encode`.
 - `incls.dbh.php` opens the database connection once per request and reuses it.
-- POST only.
+- GET only for read-only actions (`$READ_ONLY_ACTIONS`: `session`, `verify`,
+  `whoami`); everything else is POST only. API answers are never cached
+  (`Cache-Control: no-store`).
 - HTTPS mode (default): plain HTTP is refused, the session cookie is always
   `secure`, and an HSTS header tells browsers to stay on HTTPS. With
   `$HTTPS_MODE = FALSE` HTTP works, and no HSTS is sent (it would lock
@@ -80,8 +82,8 @@ Before the `switch`, `CheckRequest()` (in `api/incls/rateandsecurity.php`)
 decides who is calling:
 
 - **Browser (session cookie):** the CSRF token is checked automatically for
-  every action except the ones in `$NO_CSRF_ACTIONS` (`session`, `verify`, which
-  change nothing). In `main.js`, every request goes through `CallApi()`, which
+  every action except the ones in `$READ_ONLY_ACTIONS` (`session`, `verify`,
+  `whoami`, which change nothing). In `main.js`, every request goes through `CallApi()`, which
   attaches the token. Neither side relies on remembering to do it.
 - **Program (`Authorization: Bearer <token>`), e.g. the C# bot:** no session
   and no CSRF (no cookies, so CSRF can't happen). Actions in
@@ -93,8 +95,11 @@ decides who is calling:
 
 ## Adding actions
 
-Add a `case` to the switch in `api/index.php`. CSRF is already checked, so
-only check that the caller is logged in, with `IsAuthorized()` (works for both
+Add a `case` to the switch in `api/index.php`. It's POST only and CSRF is
+already checked. If the action only reads data and should work with GET too,
+add it to `$READ_ONLY_ACTIONS` in `rateandsecurity.php` and read its
+parameters from `$_GET`. Either way, the action
+only checks that the caller is logged in, with `IsAuthorized()` (works for both
 browser sessions and, later, API tokens):
 
 ```php
